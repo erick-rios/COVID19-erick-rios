@@ -54,6 +54,7 @@ def read_data_from_files(files):
         df.columns = [col.lower().strip().replace('\n', '') for col in df.columns]
 
         df["death"] = [2 if each=="9999-99-99" else 1 for each in df.date_died]
+        df["pregnant"] = df["pregnant"].replace(97,2)
         df["set"] = pd.cut(df["age"], bins=[0, 20, 40, 60, float('inf')], labels=[1, 2, 3, 4], right=False)
 
         # Lista de las columnas a las que deseas aplicar las condiciones
