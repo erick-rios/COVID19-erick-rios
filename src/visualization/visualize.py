@@ -67,10 +67,10 @@ plt.legend()
 # --------------------------------------------------------------
 # Combine plots in one figure
 # --------------------------------------------------------------
-set = 1
+set = 4
 sex = 1
 male = 2
-columns = ["diabetes", "patient_type", "pregnant", "copd", "asthma", "inmsupr", "hipertension", "other_disease", "cardiovascular", "obesity", "pneumonia"]
+columns = ["diabetes"]
 combined_plot_df = df.query(f"set == {set}").query(f"sex == {sex}").reset_index(drop=True)
 combined_plot_df_male = df.query(f"set == {set}").query(f"sex == {male}").reset_index(drop=True)
 
@@ -93,7 +93,7 @@ ax[1].set_xlabel("Death")
 ax[1].set_ylabel("Frequency")
 ax[0].set_ylabel("Frequency")
 
-plt.savefig(f"../../reports/figures/historigram.png")
+plt.savefig(f"../../reports/figures/historigram{set}.png")
 plt.show()
 
 # --------------------------------------------------------------
