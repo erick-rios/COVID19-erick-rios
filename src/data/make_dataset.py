@@ -52,20 +52,31 @@ def read_data_from_files(files):
     for f in files:
         df = pd.read_csv(f)
         df.columns = [col.lower().strip().replace('\n', '') for col in df.columns]
+
         df["death"] = [2 if each=="9999-99-99" else 1 for each in df.date_died]
+        df["set"] = pd.cut(df["age"], bins=[0, 20, 40, 60, float('inf')], labels=[1, 2, 3, 4], right=False)
+
+        # Lista de las columnas a las que deseas aplicar las condiciones
+        columnas = ["pneumonia", "diabetes", "copd", "asthma", "inmsupr",
+                "hipertension", "other_disease", "cardiovascular", 
+                "obesity", "renal_chronic", "tobacco", "intubed"]
+
+        # Recorre las columnas y aplica las condiciones
+        for columna in columnas:
+            df = df[(df[columna] == 1) | (df[columna] == 2)]
         
         covid_df = df[['sex', 'patient_type', 'age', 'pregnant', 'diabetes', 'copd', 'asthma', 'inmsupr',
        'hipertension', 'other_disease', 'cardiovascular', 'obesity', 'pneumonia',
-       'renal_chronic', 'tobacco','intubed', 'clasiffication_final', 'icu', 'death']]
+       'renal_chronic', 'tobacco','intubed', 'clasiffication_final', 'icu', 'death','set']]
         
     return covid_df
-        
+
 
 # --------------------------------------------------------------
 # Merging datasets
 # --------------------------------------------------------------
 data = read_data_from_files(files)
-
+data["pneumonia"].unique()
 data.info()
 
 # --------------------------------------------------------------
