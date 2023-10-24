@@ -16,10 +16,25 @@ df = pd.read_pickle("../../data/interim/01_data_processed.pkl")
 set_df = df[df["set"]==1]
 plt.plot(set_df["death"])
 # --------------------------------------------------------------
-# Plot all labels
+# Plot all labels to see the relation between age and death
 # --------------------------------------------------------------
+for label in df["set"].unique():
+    subset = df[df["set"] == label]
+    value_counts = subset["death"].value_counts().sort_index()
+    value_counts.plot(kind="bar", label=f"Label {label}")
+    plt.xlabel("Death")
+    plt.ylabel("Frequency")
+    plt.legend()
+    plt.show()
 
-
+for label in df["sex"].unique():
+    subset = df[df["set"] == label]
+    value_counts = subset["death"].value_counts().sort_index()
+    value_counts.plot(kind="bar", label=f"Label {label}")
+    plt.xlabel("Death")
+    plt.ylabel("Frequency")
+    plt.legend()
+    plt.show()
 # --------------------------------------------------------------
 # Adjust plot settings
 # --------------------------------------------------------------
