@@ -1,30 +1,16 @@
+import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import math
-import scipy
-from sklearn.neighbors import LocalOutlierFactor  # pip install scikit-learn
+from scipy.stats import norm
+from sklearn.neighbors import LocalOutlierFactor 
+import build_features# pip install scikit-learn
 
 # --------------------------------------------------------------
 # Load data
 # --------------------------------------------------------------
-df = pd.read_pickle("../../data/interim/01_data_processed.pkl")
-
-outlier_columns = ["age","death"]
-# --------------------------------------------------------------
-# Plotting outliers
-# --------------------------------------------------------------
-
-plt.style.use("fivethirtyeight")
-plt.rcParams["figure.figsize"]=(20,5)
-plt.rcParams["figure.dpi"]=100
-
-
-df[["age", "death"]].boxplot(by="death", figsize=(20,10))
-
-df[["age", "death","sex"]].boxplot(column="age",by=["death","sex"], figsize=(20,10))
-
-df[["age", "death","sex","diabetes"]].boxplot(column="age",by=["death","sex","diabetes"], figsize=(20,10))
+df = pd.read_pickle("/home/soundskydriver/Documents/COVID19-erick-rios/data/interim/01_data_processed.pkl")
+df.columns
 
 # --------------------------------------------------------------
 # Interquartile range (distribution based)
@@ -75,44 +61,46 @@ def plot_binary_outliers(dataset, col, outlier_col, reset_index):
         shadow=True,
     )
     plt.show()
-# Insert IQR function
-def mark_outliers_iqr(dataset, col):
-    """Function to mark values as outliers using the IQR method.
+    
 
-    Args:
-        dataset (pd.DataFrame): The dataset
-        col (string): The column you want apply outlier detection to
 
-    Returns:
-        pd.DataFrame: The original dataframe with an extra boolean column 
-        indicating whether the value is an outlier or not.
-    """
+# Insert Chauvenet's function
+def chauvenet(data, col, alpha=0.05):
+    data = data.copy()
+    
+    z_scores = abs((data[col] - data[col].mean()) / data[col].std())
+    probabilities = 2 * (1 - norm.cdf(z_scores))
+    is_outlier = probabilities < alpha
+    
+    # Create a new column 'column_outlier' with True/False values for outliers
+    data[f'{col}_outlier'] = is_outlier
+    
+    return data 
 
-    dataset = dataset.copy()
 
-    Q1 = dataset[col].quantile(0.25)
-    Q3 = dataset[col].quantile(0.75)
-    IQR = Q3 - Q1
+dataset = build_features.clean_table(df, column)
+plot_binary_outliers(dataset, "age", "age_outlier", reset_index = True)
 
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
 
-    dataset[col + "_outlier"] = (dataset[col] < lower_bound) | (
-        dataset[col] > upper_bound
-    )
 
-    return dataset
+col = ['age']
+outliersRemovedDf = df.copy()
 
-# Plot a single column
-col = "age"
-dataset = mark_outliers_iqr(df,col)
-dataset[dataset["age_outlier"]]
-dataset.loc[dataset["age_outlier"], "age"] = np.nan
-dataset.drop(columns=["age_outlier"])
-plot_binary_outliers(dataset=dataset,col=col, outlier_col="age_outlier",reset_index=True)
+for value in df["death"].unique():
+    for column in col:
+        dataset = build_features.clean_table(df[df["death"] == value], column)
+        plot_binary_outliers(dataset, "age", "age_outlier", reset_index = True)
+        # Replace values marked as outliers with NaN
+        outliersRemovedDf.loc[outliersRemovedDf["death"] == value, column] = dataset[column]
+        
+        numberOutliers = len(df[df["death"] == value]) - len(dataset[column].dropna())
+        print(f"Removed {numberOutliers} outliers from {column} for death={value}")
+
+
 
 
 # --------------------------------------------------------------
 # Export new dataframe
 # --------------------------------------------------------------
-outliers_removed_df.to_pickle("../../data/interim/02_outliers_removed_iqr.pkl")
+outliersRemovedDf.to_pickle("../../data/interim/02_outliers_removed_iqr.pkl")
+outliersRemovedDf.info()
