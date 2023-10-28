@@ -6,7 +6,7 @@ import build_features
 # Load data
 # --------------------------------------------------------------
 df = pd.read_pickle("../../data/interim/01_data_processed.pkl")
-df = df.drop(columns=["patient_type","other_disease","clasiffication_final","set"])
+df = df.drop(columns=["patient_type","other_disease","clasiffication_final"])
 df.head()
 
 outlierColumns = [df.columns[1]]
@@ -28,5 +28,5 @@ for value in df["death"].unique():
 # --------------------------------------------------------------
 # Export new dataframe
 # --------------------------------------------------------------
-outliersRemovedDf.to_pickle("../../data/interim/02_outliers_removed_iqr.pkl")
+outliersRemovedDf.to_pickle("../../data/interim/02_outliers_removed_chauvenet.pkl")
 outliersRemovedDf.info()
