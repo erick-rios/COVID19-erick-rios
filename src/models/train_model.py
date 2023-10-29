@@ -62,7 +62,7 @@ feature_coef = pd.DataFrame({'Feature': X.columns, 'Coefficient': coeficients})
 # --------------------------------------------------------------
 # Perform forward feature selection using simple decision tree
 # --------------------------------------------------------------
-feature_set_1 = df.columns.drop("pregnant")
+feature_set_1 = df.columns.drop(["pregnant", "age","death"])
 learner = ClassificationAlgorithms()
 
 max_features= 12
@@ -87,9 +87,6 @@ possible_feature_sets = [
 
 feature_names = [
     "Feature Set 1",
-    "Feature Set 2",
-    "Feature Set 3",
-    "Feature Set 4",
     "Selected Features",
 ]
 
@@ -114,11 +111,11 @@ for i, f in zip(range(len(possible_feature_sets)), feature_names):
             class_test_prob_y,
         ) = learner.feedforward_neural_network(
             selected_train_X,
-            y_train,
+            Y_train,
             selected_test_X,
             gridsearch=False,
         )
-        performance_test_nn += accuracy_score(y_test, class_test_y)
+        performance_test_nn += accuracy_score(Y_test, class_test_y)
 
         print("\tTraining random forest,", it)
         (
@@ -127,9 +124,9 @@ for i, f in zip(range(len(possible_feature_sets)), feature_names):
             class_train_prob_y,
             class_test_prob_y,
         ) = learner.random_forest(
-            selected_train_X, y_train, selected_test_X, gridsearch=True
+            selected_train_X, Y_train, selected_test_X, gridsearch=True
         )
-        performance_test_rf += accuracy_score(y_test, class_test_y)
+        performance_test_rf += accuracy_score(Y_test, class_test_y)
 
     performance_test_nn = performance_test_nn / iterations
     performance_test_rf = performance_test_rf / iterations
@@ -142,9 +139,9 @@ for i, f in zip(range(len(possible_feature_sets)), feature_names):
         class_train_prob_y,
         class_test_prob_y,
     ) = learner.k_nearest_neighbor(
-        selected_train_X, y_train, selected_test_X, gridsearch=True
+        selected_train_X, Y_train, selected_test_X, gridsearch=True
     )
-    performance_test_knn = accuracy_score(y_test, class_test_y)
+    performance_test_knn = accuracy_score(Y_test, class_test_y)
 
     print("\tTraining decision tree")
     (
@@ -153,9 +150,9 @@ for i, f in zip(range(len(possible_feature_sets)), feature_names):
         class_train_prob_y,
         class_test_prob_y,
     ) = learner.decision_tree(
-        selected_train_X, y_train, selected_test_X, gridsearch=True
+        selected_train_X, Y_train, selected_test_X, gridsearch=True
     )
-    performance_test_dt = accuracy_score(y_test, class_test_y)
+    performance_test_dt = accuracy_score(Y_test, class_test_y)
 
     print("\tTraining naive bayes")
     (
@@ -163,9 +160,9 @@ for i, f in zip(range(len(possible_feature_sets)), feature_names):
         class_test_y,
         class_train_prob_y,
         class_test_prob_y,
-    ) = learner.naive_bayes(selected_train_X, y_train, selected_test_X)
+    ) = learner.naive_bayes(selected_train_X, Y_train, selected_test_X)
 
-    performance_test_nb = accuracy_score(y_test, class_test_y)
+    performance_test_nb = accuracy_score(Y_test, class_test_y)
 
     # Save results to dataframe
     models = ["NN", "RF", "KNN", "DT", "NB"]
@@ -189,7 +186,13 @@ score_df.sort_values(ascending=False, by="accuracy")
 # --------------------------------------------------------------
 # Create a grouped bar plot to compare the results
 # --------------------------------------------------------------
-
+plt.figure(figsize=(10,10))
+sns.barplot(x = "model", y = "accuracy", hue="feature_set", data=score_df)
+plt.xlabel("Model")
+plt.ylabel("Accuracy")
+plt.ylim(0.7, 1)
+plt.legend(loc="lower right")
+plt.show()
 
 # --------------------------------------------------------------
 # Select best model and evaluate results
