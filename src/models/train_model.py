@@ -6,6 +6,9 @@ from LearningAlgorithms import ClassificationAlgorithms
 import seaborn as sns
 import itertools
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.linear_model import LogisticRegression
+import multiprocessing
+
 
 
 # Plot settings
@@ -18,7 +21,7 @@ plt.rcParams["lines.linewidth"] = 2
 # --------------------------------------------------------------
 # Create a training and test set
 # --------------------------------------------------------------
-df = pd.read_pickle("../../data/interim/02_outliers_removed_chauvenet.pkl")
+df = pd.read_pickle("/home/soundskydriver/Documents/COVID19-erick-rios/data/interim/02_outliers_removed_chauvenet.pkl")
 
 df_train = df.drop("age", axis = 1)
 
@@ -45,14 +48,143 @@ plt.legend()
 plt.show()
 
 # --------------------------------------------------------------
+# Correlation using LogisticRegression
+# --------------------------------------------------------------
+model = LogisticRegression()
+model.fit(X, Y)  # X es tu conjunto de características, y es la variable objetivo
+
+coeficients = model.coef_[0]  # Obtén los coeficientes del modelo
+
+feature_coef = pd.DataFrame({'Feature': X.columns, 'Coefficient': coeficients})
+
+
+
+# --------------------------------------------------------------
 # Perform forward feature selection using simple decision tree
 # --------------------------------------------------------------
+feature_set_1 = df.columns.drop("pregnant")
 learner = ClassificationAlgorithms()
+
+max_features= 12
+selected_features, ordered_features, ordered_scores = learner.forward_selection(
+    max_features, X_train, Y_train
+)
+
+plt.figure(figsize = (10,5))
+plt.plot(np.arange(1, max_features+1, 1), ordered_scores)
+plt.xlabel("Number of features")
+plt.ylabel("Accuracy")
+plt.xticks((1,max_features+1,1))
+plt.show()
 
 # --------------------------------------------------------------
 # Grid search for best hyperparameters and model selection
 # --------------------------------------------------------------
+possible_feature_sets = [
+    feature_set_1,
+    selected_features
+]
 
+feature_names = [
+    "Feature Set 1",
+    "Feature Set 2",
+    "Feature Set 3",
+    "Feature Set 4",
+    "Selected Features",
+]
+
+iterations = 1
+score_df = pd.DataFrame()
+
+for i, f in zip(range(len(possible_feature_sets)), feature_names):
+    print("Feature set:", i + 1)
+    selected_train_X = X_train[possible_feature_sets[i]]
+    selected_test_X = X_test[possible_feature_sets[i]]
+
+    # First run non deterministic classifiers to average their score.
+    performance_test_nn = 0
+    performance_test_rf = 0
+
+    for it in range(0, iterations):
+        print("\tTraining neural network,", it)
+        (
+            class_train_y,
+            class_test_y,
+            class_train_prob_y,
+            class_test_prob_y,
+        ) = learner.feedforward_neural_network(
+            selected_train_X,
+            y_train,
+            selected_test_X,
+            gridsearch=False,
+        )
+        performance_test_nn += accuracy_score(y_test, class_test_y)
+
+        print("\tTraining random forest,", it)
+        (
+            class_train_y,
+            class_test_y,
+            class_train_prob_y,
+            class_test_prob_y,
+        ) = learner.random_forest(
+            selected_train_X, y_train, selected_test_X, gridsearch=True
+        )
+        performance_test_rf += accuracy_score(y_test, class_test_y)
+
+    performance_test_nn = performance_test_nn / iterations
+    performance_test_rf = performance_test_rf / iterations
+
+    # And we run our deterministic classifiers:
+    print("\tTraining KNN")
+    (
+        class_train_y,
+        class_test_y,
+        class_train_prob_y,
+        class_test_prob_y,
+    ) = learner.k_nearest_neighbor(
+        selected_train_X, y_train, selected_test_X, gridsearch=True
+    )
+    performance_test_knn = accuracy_score(y_test, class_test_y)
+
+    print("\tTraining decision tree")
+    (
+        class_train_y,
+        class_test_y,
+        class_train_prob_y,
+        class_test_prob_y,
+    ) = learner.decision_tree(
+        selected_train_X, y_train, selected_test_X, gridsearch=True
+    )
+    performance_test_dt = accuracy_score(y_test, class_test_y)
+
+    print("\tTraining naive bayes")
+    (
+        class_train_y,
+        class_test_y,
+        class_train_prob_y,
+        class_test_prob_y,
+    ) = learner.naive_bayes(selected_train_X, y_train, selected_test_X)
+
+    performance_test_nb = accuracy_score(y_test, class_test_y)
+
+    # Save results to dataframe
+    models = ["NN", "RF", "KNN", "DT", "NB"]
+    new_scores = pd.DataFrame(
+        {
+            "model": models,
+            "feature_set": f,
+            "accuracy": [
+                performance_test_nn,
+                performance_test_rf,
+                performance_test_knn,
+                performance_test_dt,
+                performance_test_nb,
+            ],
+        }
+    )
+    score_df = pd.concat([score_df, new_scores])
+
+score_df.sort_values(ascending=False, by="accuracy")
 
 # --------------------------------------------------------------
 # Create a grouped bar plot to compare the results

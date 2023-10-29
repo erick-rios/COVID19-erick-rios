@@ -94,6 +94,23 @@ class ClassificationAlgorithms:
         gridsearch=True,
         print_model_details=False,
     ):
+        """_summary_
+
+        Args:
+            train_X (_type_): _description_
+            train_y (_type_): _description_
+            test_X (_type_): _description_
+            hidden_layer_sizes (tuple, optional): _description_. Defaults to (100,).
+            max_iter (int, optional): _description_. Defaults to 2000.
+            activation (str, optional): _description_. Defaults to "logistic".
+            alpha (float, optional): _description_. Defaults to 0.0001.
+            learning_rate (str, optional): _description_. Defaults to "adaptive".
+            gridsearch (bool, optional): _description_. Defaults to True.
+            print_model_details (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
 
         if gridsearch:
             tuned_parameters = [
@@ -168,6 +185,21 @@ class ClassificationAlgorithms:
         gridsearch=True,
         print_model_details=False,
     ):
+        """_summary_
+
+        Args:
+            train_X (_type_): _description_
+            train_y (_type_): _description_
+            test_X (_type_): _description_
+            kernel (str, optional): _description_. Defaults to "rbf".
+            C (int, optional): _description_. Defaults to 1.
+            gamma (_type_, optional): _description_. Defaults to 1e-3.
+            gridsearch (bool, optional): _description_. Defaults to True.
+            print_model_details (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
         # Create the model
         if gridsearch:
             tuned_parameters = [
@@ -215,6 +247,21 @@ class ClassificationAlgorithms:
         gridsearch=True,
         print_model_details=False,
     ):
+        """_summary_
+
+        Args:
+            train_X (_type_): _description_
+            train_y (_type_): _description_
+            test_X (_type_): _description_
+            C (int, optional): _description_. Defaults to 1.
+            tol (_type_, optional): _description_. Defaults to 1e-3.
+            max_iter (int, optional): _description_. Defaults to 1000.
+            gridsearch (bool, optional): _description_. Defaults to True.
+            print_model_details (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
         # Create the model
         if gridsearch:
             tuned_parameters = [
